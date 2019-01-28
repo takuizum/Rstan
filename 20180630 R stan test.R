@@ -34,8 +34,8 @@ model_resp <- stan_model('data.stan')
 # stan model
 # compile
 model_2PL <- stan_model("irtest.stan")  # multi group irt
-model_2PL_em <- stan_model("mml_em.stan")  # marginal ML
-model_2PL_jm <- stan_model("jml.stan")  # joint ML
+model_2PL_em <- stan_model("~/R/Rstan/mml_em.stan")  # marginal ML
+model_2PL_jm <- stan_model("~/R/Rstan/jml.stan")  # joint ML
 
 
 # simulation data
@@ -56,6 +56,7 @@ system.time(
   res_vb <- vb(model_2PL_em, data = datastan)
 )
 
+res_vb %>% shinystan::launch_shinystan()
 
 system.time(
   res_2PL <- sampling(model_2PL, data = datastan, iter = 1000, warmup = 200, init = 0)

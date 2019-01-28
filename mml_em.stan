@@ -24,17 +24,17 @@ parameters{
   vector<lower=-5, upper=5>[J] b;
 }
 
-// transformed parameters{
-//   vector [N] lnL; // calculate log likelihood in each subjects
-//   for(n in 1:N){
-//     for(j in 1:J){
-//       for(m in 1:M){
-//         lnL[n] += bernoulli_logit_lpmf(y[n,j] | 1.702 * a[j] * (node[m] - b[j])); // incorrect
-//         lnL[n] += lnW[m];
-//       }
-//     }
-//   }
-// }
+transformed parameters{
+  vector [N] lnL; // calculate log likelihood in each subjects
+  for(n in 1:N){
+    for(j in 1:J){
+      for(m in 1:M){
+        lnL[n] += bernoulli_logit_lpmf(y[n,j] | 1.702 * a[j] * (node[m] - b[j])); // incorrect
+        lnL[n] += lnW[m];
+      }
+    }
+  }
+}
 
 model{
   // prior dist
