@@ -31,22 +31,23 @@ model_resp <- stan_model('data.stan')
 
 
 
-
-
-
 # stan model
+# compile
 model_2PL <- stan_model("irtest.stan")
 
 # simulation data
+dat <- read.csv("~/OneDrive/Documents/12_R/MML-EM/MML-EM/ngaku16.csv", header = F)
 datastan <- list(N=400, M=30, y=data)
-datastan <- list(N=400, M=30, y=resp)
+group <- c(rep(1,2000),rep(2,2549))
+datastan <- list(N=4549, M=25, G=2, y=dat[,-1], group=group)
 
 
 
 
 system.time(
-  res_2PL <- sampling(model_2PL, data = datastan, iter = 1000, warmup = 200, init = 0, cores=2)
+  res_2PL <- sampling(model_2PL, data = datastan, iter = 1000, warmup = 200, init = 0)
 )
+shinystan::launch_shinystan(res_2PL)
 
 # どうもこの位サンプリング数では，収束し切れていない模様?。繰り返しをもっと増やしてみよう。
 
@@ -100,7 +101,7 @@ resp <- theta %>%
 
 datastan <- list(N=1000, M=30, y=resp)
 
-
+X <- resp
 
 
 # 一般項目反応モデルの構築
@@ -140,6 +141,7 @@ b - res_2PLEM$para$b
 
 
 # generalized item response model
+datastan <- list(N=1000, M=30, y=resp)
 model_G2PL <- stan_model("girtmodel.stan")
 res_G2PL <- sampling(model_G2PL, data = datastan, iter = 1000, warmup = 200, init = 0)
 res_G2PL@model_pars
@@ -151,8 +153,6 @@ rstan::extract(res_G2PL)$phi %>% apply(2,mean)
 res_G2PL_a <- rstan::extract(res_G2PL)$a %>% apply(2,mean)
 res_G2PL_b <- rstan::extract(res_G2PL)$b %>% apply(2,mean)
 
-a - res_G2PL_a
-b - res_G2PL_b
 
 #  visualization
 library(ggplot2)
@@ -190,3 +190,24 @@ para_b_diff %>% tidyr::gather(key = method, value=diff, -ID) %>%
   facet_grid(.~method) +
   geom_point() + 
   geom_hline(yintercept = 0, linetype="dashed")
+
+
+
+#######
+# 周辺ベイズのと比較
+
+system.time(
+  res_2PL_mcmcb <- sampling(model_2PL, data = datastan, iter = 1000, warmup = 200, init = 0)
+)
+mc_a <- rstan::extract(res_2PL_mcmcb)$a %>% apply(2,mean)
+mc_b <- rstan::extract(res_2PL_mcmcb)$b %>% apply(2,mean)
+
+library(irtfun2)
+res_2PL_mrgb <- datastan$y %>% estip(model="2PL", fc=1, Bayes = 1)
+res_2PL_mrgb
+
+res_2PL_mrgb$para$a-mc_a
+res_2PL_mrgb$para$b-mc_b
+# 時々0．01以上の差が出ているところもあるが，大きくは変わらなそう。
+
+
