@@ -6,6 +6,8 @@ system('g++ -v')
 
 
 library(rstan)
+rstan_options(auto_write=TRUE) 
+options(mc.cores = parallel::detectCores())
 
 # example stan code
 
@@ -33,23 +35,39 @@ model_resp <- stan_model('data.stan')
 
 # stan model
 # compile
-model_2PL <- stan_model("irtest.stan")
+model_2PL <- stan_model("irtest.stan")  # multi group irt
+model_2PL_em <- stan_model("mml_em.stan")  # marginal ML
+model_2PL_jm <- stan_model("jml.stan")  # joint ML
+
 
 # simulation data
 dat <- read.csv("~/OneDrive/Documents/12_R/MML-EM/MML-EM/ngaku16.csv", header = F)
+
 datastan <- list(N=400, M=30, y=data)
 group <- c(rep(1,2000),rep(2,2549))
-datastan <- list(N=4549, M=25, G=2, y=dat[,-1], group=group)
 
+# joint ml
+datastan <- list(N = 4549, M = 25, y=dat[,-1])
 
-
+# mml_em
+node <- seq(-4, 4, length.out = 21)
+weight <- dnorm(seq(-4, 4, length.out = 21)) / sum(dnorm(seq(-4, 4, length.out = 21)))
+datastan <- list(N = 4549, J = 25, M = 21, y=dat[,-1], node = node, theta = weight)
 
 system.time(
-  res_2PL <- sampling(model_2PL, data = datastan, iter = 1000, warmup = 200, init = 0)
+  res_vb <- vb(model_2PL_jm, data = datastan)
 )
-shinystan::launch_shinystan(res_2PL)
+rstan::extract(res_vb)$a
+# shinystan::launch_shinystan(res_vb)
+
+system.time(
+  res_2PL <- sampling(model_2PL_jm, data = datastan, iter = 1000, warmup = 200, init = 0)
+)
+
+hinystan::launch_shinystan(res_2PL)
 
 # どうもこの位サンプリング数では，収束し切れていない模様?。繰り返しをもっと増やしてみよう。
+
 system.time(
   res <- sampling(model_2PL, data = datastan, iter = 2000, warmup = 500, init = 0,　cores=4)
 )
