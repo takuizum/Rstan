@@ -33,6 +33,7 @@ model_resp <- stan_model('data.stan')
 
 # stan model
 # compile
+<<<<<<< HEAD
 model_2PL <- stan_model("irtest.stan")
 
 # simulation data
@@ -40,9 +41,32 @@ dat <- read.csv("~/OneDrive/Documents/12_R/MML-EM/MML-EM/ngaku16.csv", header = 
 datastan <- list(N=400, M=30, y=data)
 group <- c(rep(1,2000),rep(2,2549))
 datastan <- list(N=4549, M=25, G=2, y=dat[,-1], group=group)
+=======
+model_2PL <- stan_model("irtest.stan")  # multi group irt
+model_2PL_em <- stan_model("~/R/Rstan/mml_em.stan")  # marginal ML
+model_2PL_jm <- stan_model("~/R/Rstan/jml.stan")  # joint ML
 
 
+# simulation data
+dat <- read.csv("~/OneDrive/Documents/12_R/MML-EM/MML-EM/ngaku16.csv", header = F)
 
+datastan <- list(N=400, M=30, y=data)
+group <- c(rep(1,2000),rep(2,2549))
+>>>>>>> a11ad9b48f0a1b395be76eae06061d6ce7e8c933
+
+# joint ml
+datastan <- list(N = 4549, M = 25, y=dat[,-1])
+
+# mml_em
+node <- seq(-4, 4, length.out = 21)
+weight <- log(dnorm(seq(-4, 4, length.out = 21)) / sum(dnorm(seq(-4, 4, length.out = 21))))
+datastan <- list(N = 4549, J = 25, M = 21, y=dat[,-1], node = node, lnW = weight)
+
+system.time(
+  res_vb <- vb(model_2PL_em, data = datastan)
+)
+
+res_vb %>% shinystan::launch_shinystan()
 
 system.time(
   res_2PL <- sampling(model_2PL, data = datastan, iter = 1000, warmup = 200, init = 0)
