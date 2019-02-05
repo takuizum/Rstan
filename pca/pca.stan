@@ -1,30 +1,35 @@
-// Principal Component Analysis in Stan
 data {
-  int<lower=1> D; // the dimention of data
-  int<lower=1> M; // the number of components
-  int<lower=1> N;
-  matrix[N,D] x; // data
-  real sigma; // a hyper parameter
+  int<lower = 0> V;
+  int<lower = 0> N;
+  vector[V] Y[N];
+  vector[V] mu_prior;
+  matrix[V,V] mu_prior_prec;
+  real covmat_prior_DF;
+  cov_matrix[V] covmat_prior;  
 }
-
-// The parameters accepted by the model. Our model
-// accepts two parameters 'mu' and 'sigma'.
 parameters {
-  vector[M] mu;
-  cov_matrix[M] sigma;
-  real<lower=0> sigma;
-  matrix[N, M] W; // latent variables weight matrix
-  matrix[D, M] z; // latent variables matrix
+  vector[V] mu;
+  cov_matrix[V] prec;
 }
-
-transformed parameters {
-  C = W%*%t(W) + sigma*sigma*
-}
-
-model {
-  for(i in 1:N){
-    for(j in 1:D)
+model
+{
+  // priors on the vector of multinormal means
+  mu ~ multi_normal_prec(mu_prior, mu_prior_prec);
+  // priors on the covariance matrix
+  prec ~ wishart(covmat_prior_DF, covmat_prior);
+  
+ // likelihood
+  for (i in 1:N) {
+    Y[i] ~ multi_normal_prec(mu, prec);
   }
-  y ~ normal(mu, sigma);
 }
 
+generated quantities {
+  vector[N] log_lik; 
+  cov_matrix[V] Sigma;
+  
+  Sigma = inverse(prec);
+  for (i in 1:N) {
+    log_lik[i] = multi_normal_prec_lpdf(Y[i] | mu, prec);
+  }
+}
