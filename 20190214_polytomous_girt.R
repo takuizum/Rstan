@@ -5,6 +5,7 @@ Y <- ltm::Science %>% purrr::map_df(as.integer)
 
 stan_data <- list(N = nrow(Y), J = ncol(Y), Y = Y, K = 4)
 
+# polytomous GIRT model
 mod1 <- stan_model("poly_girt.stan")
 
 res1 <- sampling(mod1, data = stan_data, cores = 6, warmup = 200, iter = 1000, control = list(adapt_delta = 0.99))
@@ -21,10 +22,6 @@ map <- function(z){
   density(z)$x[which.max(density(z)$y)] 
 }
 
-# other of d
-res1_ex <- res1 %>% rstan::extract()
-res1_ex %>% purrr::map(as.matrix) %>% purrr::map(~apply(., 2, mean))
-
 # a
 a <- res1 %>% rstan::extract() %$% a %>% apply(2, mean)
 # d
@@ -36,3 +33,36 @@ phi <- res1 %>% rstan::extract() %$% phi %>% apply(2, mean)
 
 cor(theta, phi)
 plot(theta, phi)
+
+
+grm_sub <- function(theta, a, b, D, k){
+  pk <- dplyr::if_else(condition = (k>1),
+                       true = (1+exp(-D*a * (theta - b[k])))^(-1),
+                       false = 1)
+  pk1 <- dplyr::if_else(condition = (k < length(b)), 
+                        true = (1+exp(-D*a * (theta - b[k+1])))^(-1),
+                        false = 0)
+  pk - pk1
+}
+
+grm <- function(theta, a, b, D = 1.702, k){
+  apply(as.matrix(theta), 1, grm_sub, a = a, b = b, D = D, k = k)
+}
+
+# grm <- function(theta, a, b, D=1.072, k){
+#   pk <- ifelse((k>1),
+#                (1+exp(-D*a * (theta - b[k])))^(-1),
+#                1)
+#   pk1 <- ifelse((k < length(b)), 
+#                 (1+exp(-D*a * (theta - b[k+1])))^(-1),
+#                 0)
+#   pk - pk1
+# }
+grm(-1, a[1], beta[1,], k = 1)
+
+j <- 6
+data.frame(theta = c(-4:4)) %>% ggplot(aes(x = theta))+
+  stat_function(fun = grm, args = list(a = a[j], b = beta[j,], k = 1))+
+  stat_function(fun = grm, args = list(a = a[j], b = beta[j,], k = 2))+
+  stat_function(fun = grm, args = list(a = a[j], b = beta[j,], k = 3))
+  
