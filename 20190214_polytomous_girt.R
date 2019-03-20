@@ -1,7 +1,9 @@
 # polytomous stan
 library(tidyverse)
 library(rstan)
+library(ltm)
 Y <- ltm::Science %>% purrr::map_df(as.integer)
+grm(ltm::Science)
 
 stan_data <- list(N = nrow(Y), J = ncol(Y), Y = Y, K = 4)
 
@@ -9,7 +11,7 @@ stan_data <- list(N = nrow(Y), J = ncol(Y), Y = Y, K = 4)
 mod1 <- stan_model("poly_girt.stan")
 
 res1 <- sampling(mod1, data = stan_data, cores = 6, warmup = 200, iter = 1000, control = list(adapt_delta = 0.99))
-
+res1 <- estgrm_stan(y = Y, infer = "VB")
 # vb
 res2 <- vb(mod1, data = stan_data)
 
@@ -26,7 +28,7 @@ map <- function(z){
 a <- res1 %>% rstan::extract() %$% a %>% apply(2, mean)
 # d
 print(res1, pars = c("d"))
-beta <- res1 %>% rstan::extract() %$% d %>% apply(c(2,3), mean)
+beta <- res1 %>% rstan::extract() %$% b %>% apply(c(2,3), mean)
 
 theta <- res1 %>% rstan::extract() %$% theta %>% apply(2, mean)
 phi <- res1 %>% rstan::extract() %$% phi %>% apply(2, mean)
@@ -49,15 +51,6 @@ grm <- function(theta, a, b, D = 1.702, k){
   apply(as.matrix(theta), 1, grm_sub, a = a, b = b, D = D, k = k)
 }
 
-# grm <- function(theta, a, b, D=1.072, k){
-#   pk <- ifelse((k>1),
-#                (1+exp(-D*a * (theta - b[k])))^(-1),
-#                1)
-#   pk1 <- ifelse((k < length(b)), 
-#                 (1+exp(-D*a * (theta - b[k+1])))^(-1),
-#                 0)
-#   pk - pk1
-# }
 grm(-1, a[1], beta[1,], k = 1)
 
 j <- 6

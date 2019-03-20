@@ -14,7 +14,7 @@ parameters {
 }
 
 model {
-  a ~ lognormal(0, 1);
+  a ~ cauchy(0, 1);
   theta ~ normal(0, 1);
   for(j in 1:J){
     for(k in 1:(K[j]-1)){

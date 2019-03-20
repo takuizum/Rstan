@@ -37,40 +37,39 @@ model_resp <- stan_model('data.stan')
 # compile
 model_2PL <- stan_model("irtest.stan")  # multi group irt
 model_2PL_em <- stan_model("mml_em.stan")  # marginal ML
-model_2PL_jm <- stan_model("jml.stan")  # joint ML
+model_2PL_jm <- stan_model("/Users/takuizum/local_Documents/R/rstan/rstan/jml.stan")  # joint ML
+model_3PL_jm <- stan_model("/Users/takuizum/local_Documents/R/rstan/rstan/jml3pl.stan")  # joint ML
+
 
 
 # simulation data
 dat <- read.csv("~/OneDrive/Documents/12_R/MML-EM/MML-EM/ngaku16.csv", header = F)
 
-datastan <- list(N=400, M=30, y=data)
-group <- c(rep(1,2000),rep(2,2549))
+# datastan <- list(N=400, M=30, y=data)
+# group <- c(rep(1,2000),rep(2,2549))
 
 # joint ml
 datastan <- list(N = 4549, M = 25, y=dat[,-1])
 
-# mml_em
-node <- seq(-4, 4, length.out = 21)
-weight <- dnorm(seq(-4, 4, length.out = 21)) / sum(dnorm(seq(-4, 4, length.out = 21)))
-datastan <- list(N = 4549, J = 25, M = 21, y=dat[,-1], node = node, theta = weight)
+# # mml_em
+# node <- seq(-4, 4, length.out = 21)
+# weight <- dnorm(seq(-4, 4, length.out = 21)) / sum(dnorm(seq(-4, 4, length.out = 21)))
+# datastan <- list(N = 4549, J = 25, M = 21, y=dat[,-1], node = node, theta = weight)
 
-system.time(
-  res_vb <- vb(model_2PL_jm, data = datastan)
-)
+res_vb <- vb(model_2PL_jm, data = datastan)
 rstan::extract(res_vb)$a
 # shinystan::launch_shinystan(res_vb)
+res_2PL <- sampling(model_2PL_jm, data = datastan, iter = 1000, warmup = 200, init = 0)
+res_3PL <- sampling(model_3PL_jm, data = datastan, iter = 1000, warmup = 200, init = 0)
+res_3PL <- vb(model_3PL_jm, data = datastan)
 
-system.time(
-  res_2PL <- sampling(model_2PL_jm, data = datastan, iter = 1000, warmup = 200, init = 0)
-)
+
 
 hinystan::launch_shinystan(res_2PL)
 
 # どうもこの位サンプリング数では，収束し切れていない模様?。繰り返しをもっと増やしてみよう。
+res <- sampling(model_2PL, data = datastan, iter = 2000, warmup = 500, init = 0,　cores=4)
 
-system.time(
-  res <- sampling(model_2PL, data = datastan, iter = 2000, warmup = 500, init = 0,　cores=4)
-)
 
 # 豊田（2008）ではバーンイン(burn-in, warm-up)を1000回，サンプリングを10000回と設定していた。これにしたがって設定を変えてみよう。
 
