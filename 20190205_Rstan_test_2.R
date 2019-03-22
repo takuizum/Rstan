@@ -57,9 +57,10 @@ datastan <- list(N = 4549, M = 25, y=dat[,-1])
 # datastan <- list(N = 4549, J = 25, M = 21, y=dat[,-1], node = node, theta = weight)
 
 res_vb <- vb(model_2PL_jm, data = datastan)
-rstan::extract(res_vb)$a
+rstan::extract(res_vb)$a %>% apply(2, mean)
 # shinystan::launch_shinystan(res_vb)
-res_2PL <- sampling(model_2PL_jm, data = datastan, iter = 1000, warmup = 200, init = 0)
+res_2PL <- sampling(model_2PL_jm, data = datastan, iter = 2000, warmup = 500, init = 0)
+launch_shinystan(res_2PL)
 res_3PL <- sampling(model_3PL_jm, data = datastan, iter = 1000, warmup = 200, init = 0)
 res_3PL <- vb(model_3PL_jm, data = datastan)
 
