@@ -10,8 +10,17 @@ parameters {
   real<lower = 0> a[J];
   real b[J];
   real theta[N];
+  real mu_free[G - 1];
+  real<lower = 0> sigma_free[G - 1];
+}
+
+transformed parameters{
   real mu[G];
-  real<lower = 0> sigma[G];
+  real sigma[G];
+  mu[1] = 0;
+  mu[2:G] = mu_free;
+  sigma[1] = 1;
+  sigma[2:G] = sigma_free;
 }
 
 model {

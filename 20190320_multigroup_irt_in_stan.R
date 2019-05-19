@@ -24,12 +24,14 @@ rstan::extract(fit1) %$% a %>% apply(2, mean)
 rstan::extract(fit1) %$% b %>% apply(2, mean)
 
 # full sampling
-fit1 <- sampling(mod1, data = stan_data, warmup = 2000, iter = 10000, cores = 6)
+fit2 <- sampling(mod1, data = stan_data, warmup = 300, iter = 1000, cores = 4)
+fit2_para <- rstan::summary(fit2, pars = c("a", "b", "mu", "sigma")) %$% summary
 
-launch_shinystan(fit1)
+
+launch_shinystan(fit2)
 
 # classical diagnose
-all(summary(fit1)$summary[,"Rhat"]<1.10)
+all(summary(fit2)$summary[,"Rhat"]<1.10)
 
 
 tibble::tibble(x = c(0:4)) %>% ggplot(aes(x = x)) + 

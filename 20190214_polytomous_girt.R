@@ -11,7 +11,11 @@ stan_data <- list(N = nrow(Y), J = ncol(Y), Y = Y, K = 4)
 mod1 <- stan_model("poly_girt.stan")
 
 res1 <- sampling(mod1, data = stan_data, cores = 6, warmup = 200, iter = 1000, control = list(adapt_delta = 0.99))
+res1 <- vb(mod1, data = stan_data, init = 1)
+summary(res1)$summary %>% View
+
 res1 <- estgrm_stan(y = Y, infer = "VB")
+res1 %>% rstan::extract() %$% d %>% apply(2, mean) %>% hist
 # vb
 res2 <- vb(mod1, data = stan_data)
 
