@@ -12,7 +12,7 @@ res1$para$a
 res1$para$b
 
 
-mod1 <- stan_model('irt2pl_mg.stan') # stan model input
+mod1 <- stan_model('src/irt2pl_mg.stan') # stan model input
 stan_data <- list(y = sim_data_4[,c(-1, -2)], group = sim_data_4$group, N = 9000, J = 30, G = 3)
 
 # variational Bayes
