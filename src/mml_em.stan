@@ -12,7 +12,7 @@ transformed data{
   h = 8/(M-1.0);
   for(k in 1:M){
     node[k] = -4+h*(k-1);
-    lnW[k] = normal_lpdf(theta[k]|0,1)+log(h);
+    lnW[k] = normal_lpdf(node[k]|0,1)+log(h);
   }
 }
 
