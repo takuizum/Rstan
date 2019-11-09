@@ -1,5 +1,3 @@
-// IRT in Rstan runnning test
-
 data {
   int<lower = 1> N;  // # of subjects
   int<lower = 1> J;  // # of items
@@ -11,8 +9,8 @@ transformed data{
   vector [M] lnW;
   vector [M] node;
   real h;
-  h = 8/(K-1.0);
-  for(k in 1:K){
+  h = 8/(M-1.0);
+  for(k in 1:M){
     node[k] = -4+h*(k-1);
     lnW[k] = normal_lpdf(theta[k]|0,1)+log(h);
   }
