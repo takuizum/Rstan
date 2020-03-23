@@ -10,7 +10,7 @@ Y2 <- rnorm(N2, 1, 4)
 data_1 <- list(Y1=Y1, Y2=Y2, N1=N1, N2=N2)
 
 # compile
-model_1 <- stan_model("chapter1.stan")
+model_1 <- stan_model("src/chapter1.stan")
 
 mc_1 <- model_1 %>% sampling(data=data_1)
 

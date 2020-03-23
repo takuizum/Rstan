@@ -5,17 +5,6 @@ data {
   int y[N, J];  // response vector
 }
 
-transformed data{
-  vector [M] lnW;
-  vector [M] node;
-  real h;
-  h = 8/(M-1.0);
-  for(k in 1:M){
-    node[k] = -4+h*(k-1);
-    lnW[k] = normal_lpdf(node[k]|0,1)+log(h);
-  }
-}
-
 parameters{
   vector<lower=0>[J] a;
   vector[J] b;
@@ -39,5 +28,5 @@ model{
   // prior dist
   a ~ lognormal(0, 1);
   b ~ normal(0, 3);
-  target += sum(lnL);
+  target += lnL;
 }

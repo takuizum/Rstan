@@ -12,9 +12,13 @@ res1$para$b
 
 # stan
 
-mod1 <- stan_model("src/mml_em.stan")
+mod1 <- stan_model('src/mml_em.stan')
+mod1 <- stan_model("src/irt2pl_mg.stan") # stan model input
+
 node <- seq(-4, 4, len = 21)
 lnw <- log(dnorm(node)/sum(dnorm(node)))
 stan_data <- list(y = sim_data_2[,-1], N = 3000, J = 30, M = 21)
 
 vb1 <- vb(mod1, data = stan_data, init = 1)
+
+smp1 <- sampling(mod1, stan_data)
